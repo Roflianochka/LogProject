@@ -1,0 +1,77 @@
+services:
+  api:
+    container_name: "test-api-with-cv"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "python -m api"
+    restart: always
+    env_file:
+      - ".env"
+    volumes:
+      - .:/opt
+    ports:
+      - "80:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+#  recognition:
+#    container_name: "recognition-module"
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    command: sh -c "python recognition/Face-Recognize-Module.py"
+#    restart: always
+#    env_file:
+#      - ".env"
+#    volumes:
+#      - .:/opt
+  db:
+    container_name: "fastapi-test-db-with-cv"
+    image: postgres:16-alpine3.19
+    restart: always
+    env_file:
+      - ".env"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "${POSTGRES_DB}", "-U", "${POSTGRES_USER}" ]
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+#  adminer:
+#    image: adminer
+#    container_name: "fastapi-test-adminer-with-cv"
+#    restart: always
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      db:
+#        condition: service_healthy
+#
+#  redis:
+#    image: redis:alpine
+#    container_name: "redis"
+#    restart: always
+#    ports:
+#      - "6380:6380"
+#
+#  celery:
+#    container_name: "celery-worker"
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    command: celery -A api.tasks worker --loglevel=info
+#    depends_on:
+#      - api
+#      - redis
+#    restart: always
+
+
+
+volumes:
+  pgdata:
